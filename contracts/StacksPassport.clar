@@ -59,3 +59,43 @@ Decentralized Social Login Contract
   )
 )
 
+;; Read-only function to get user information
+(define-read-only (get-user-info (user principal))
+  (map-get? users user)
+)
+
+;; Read-only function to get the total number of registered users
+(define-read-only (get-user-count)
+  (var-get user-count)
+)
+
+;; Function to check if a user is registered
+(define-read-only (is-user-registered (user principal))
+  (is-some (map-get? users user))
+)
+
+;; Function to delete user profile
+(define-public (delete-profile)
+  (let
+    ((caller tx-sender))
+    (asserts! (is-some (map-get? users caller)) ERR-USER-NOT-FOUND)
+    (map-delete users caller)
+    (var-set user-count (- (var-get user-count) u1))
+    (ok true)
+  )
+)
+
+;; Function to clear profile image
+(define-public (clear-profile-image)
+  (let
+    ((caller tx-sender))
+    (asserts! (is-some (map-get? users caller)) ERR-USER-NOT-FOUND)
+    (map-set users caller
+      (merge (unwrap-panic (map-get? users caller))
+        { profile-image: none }
+      )
+    )
+    (ok true)
+  )
+)
+
